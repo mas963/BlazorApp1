@@ -13,11 +13,17 @@
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
-    <script src="_content/Blazored.Modal/blazored.modal.js"></script>
+    <link href="_content/Blazored.Typeahead/blazored-typeahead.css" rel="stylesheet" />
+    <script src="_content/Blazored.Typeahead/blazored-typeahead.js"></script>
+
 </head>
 
 <body>
-    <div id="app">Loading...</div>
+    <div id="app">
+        <div class="text-center">
+            <img src="/images/loading-gif.gif" />
+        </div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -26,6 +32,7 @@
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script src="_content/Blazored.Modal/blazored.modal.js"></script>
 </body>
 
 </html>

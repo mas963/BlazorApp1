@@ -1,12 +1,20 @@
+using BlazorApp1.Server.Data.Context;
+using BlazorApp1.Server.Middlewares;
+using BlazorApp1.Server.Services.Extensions;
+using BlazorApp1.Server.Services.Infrastruce;
+using BlazorApp1.Server.Services.Services;
+using Blazored.LocalStorage;
 using Blazored.Modal;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace BlazorApp1.Server
 {
@@ -28,6 +36,43 @@ namespace BlazorApp1.Server
             services.AddRazorPages();
 
             services.AddBlazoredModal();
+
+            services.ConfigureMapping();
+
+            services.AddHttpContextAccessor();
+            services.AddScoped<HttpContextAccessor>();
+
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<ISupplierService, SupplierService>();
+            services.AddScoped<IValidationService, ValidationService>();
+
+            services.AddDbContext<MealOrderingDbContext>(config =>
+            {
+                config.UseNpgsql("User ID=postgres; Password=123; Host=localhost; Port=5432; Database=mealordering;");
+                config.EnableSensitiveDataLogging();
+            });
+
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = Configuration["JwtIssuer"],
+                        ValidAudience = Configuration["JwtAudience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSecurityKey"]))
+                    };
+                });
+
+            services.AddBlazoredLocalStorage();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,11 +90,16 @@ namespace BlazorApp1.Server
                 app.UseHsts();
             }
 
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
